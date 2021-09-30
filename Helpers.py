@@ -136,7 +136,7 @@ class TTAFrame():
         
 def narrowize(grid,bound,thickness):
     """
-    Narrows down the roads to the specified thickness
+    Narrows down the roads by the specified thickness
     """
     x,y = grid.shape
     ngrid = grid
