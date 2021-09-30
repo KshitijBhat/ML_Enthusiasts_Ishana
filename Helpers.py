@@ -8,6 +8,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
+from numba import njit
 
 import json
 
@@ -133,7 +134,8 @@ class TTAFrame():
 
     def load(self, path):
         self.net.load_state_dict(torch.load(path))
-        
+
+@njit        
 def narrowize(grid,bound,thickness):
     """
     Narrows down the roads by the specified thickness
@@ -156,36 +158,78 @@ def split_stitch(image,masks=None):
     """
     h,w = image.shape[:2]
     out = []
-    if w>h:
-        splits = np.floor(w/h).astype('int')
+    if w>h:        
+        
+        splits = np.floor(w/h).astype('int') 
         if masks == None:
+
             for i in range(splits):
                 sq = cv2.resize(image[:,i*h:(i+1)*h],(1024,1024))
+
                 out.append(sq)
             last = cv2.resize(image[:,-h:],(1024,1024))
+
+            out.append(last)
+            return out 
+        else:
+
+            for mask in masks:
+                out.append(cv2.resize(mask,(h,h)))
+            fabric = np.concatenate(out[:-1],axis=1) 
+            last = out[-1][:,(h*splits)-w:] 
+            fabric = np.concatenate((fabric,last),axis=1)
+            
+            return fabric
+    elif w<h:
+        
+        splits = np.floor(h/w).astype('int')
+        if masks == None:
+            for i in range(splits):
+                sq = cv2.resize(image[i*w:(i+1)*w,:],(1024,1024))
+                out.append(sq)
+            last = cv2.resize(image[-w:,:],(1024,1024))
             out.append(last)
             return out 
         else:
             for mask in masks:
-                out.append(cv2.resize(mask,(h,h)))
-            fabric = np.concatenate(out[:-1],axis=1)
-            last = out[-1][:,(h*splits)-w:]
-            fabric = np.concatenate((fabric,last),axis=1)
+                out.append(cv2.resize(mask,(w,w)))
+            fabric = np.concatenate(out[:-1],axis=0)
+            last = out[-1][(w*splits)-h:,:]
+            fabric = np.concatenate((fabric,last),axis=0)    
+            return fabric    
+    else:
+        if masks == None:
+            out.append(cv2.resize(image,(1024,1024))) 
+            return out  
+        else:
+            fabric = cv2.resize(masks[0],(h,h))
             return fabric
-            
 
-# else if h>w:
-#     splits = np.floor(h/w).astype('int')
-#     if masks == None:
-#         for i in range(splits):
-#             sq = cv2.resize(image[i*w:(i+1)*w,:],(1024,1024))
-#             out.append(sq)
-#         last = cv2.resize(image[-w:,:],(1024,1024))
-#         out.append(last)    
-#         return out
 
-# else:
-#     if split:
-#         return cv2.resize(image,(1024,1024))
-#     else:
-#         return cv2.resize(masks[0],(w,w))
+def euclidean(node1, node2):
+    '''
+    Returns the eulidean distance beween two node coordinates. 
+    '''
+    x1,y1 = node1
+    x2,y2 = node2
+    return np.sqrt((x2-x1)**2 + (y2-y1)**2)
+
+def initgraph(grid,draw=False):
+    '''
+    Initializes the possible nodes in a binary occupancy grid (2d numpy array).
+    '''
+    grid_size = grid.shape
+    G = nx.grid_2d_graph(*grid_size)
+    deleted_nodes = 0 
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if grid[i,j] == 1:
+                G.remove_node((i,j))
+                deleted_nodes += 1
+          
+    if draw:
+        print(f"removed {deleted_nodes} nodes")
+        print(f"number of occupied cells in grid {np.sum(grid)}")
+        pos = {(x,y):(y,-x) for x,y in G.nodes()}
+        nx.draw(G, pos = pos, node_color = 'red', node_size=2)
+    return G
