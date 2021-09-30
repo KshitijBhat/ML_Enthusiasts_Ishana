@@ -1,6 +1,6 @@
-#Ishana team ML_enthusiasts
+# Ishana team ML_enthusiasts
 
-##Requirements
+## Requirements
 * Python 3.7.12
 * Numpy
 * Pytorch 0.2.0
