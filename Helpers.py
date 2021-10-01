@@ -235,7 +235,7 @@ def initgraph(grid,draw=False):
         nx.draw(G, pos = pos, node_color = 'red', node_size=2)
     return G
 
-def generate_path(Graph,start,end):
+def generate_path(Graph,start,end,heur = euclidean):
     startx,endx = (-1,-1),(-1,-1)
     if not Graph.has_node(tuple(start)):
         node_coords = np.array(nx.nodes(Graph))
@@ -251,15 +251,15 @@ def generate_path(Graph,start,end):
         print(endx)
     try:
         if startx[1] == -1 and endx[1] == -1:
-            astar_path = nx.astar_path(Graph, start, end, heuristic=euclidean, weight="weight") 
+            astar_path = nx.astar_path(Graph, start, end, heuristic=heur, weight="weight") 
         else:
             if startx[1] != -1:
                 if endx[1] == -1:
-                    astar_path = [start] + nx.astar_path(Graph, startx, end, heuristic=euclidean, weight="weight")
+                    astar_path = [start] + nx.astar_path(Graph, startx, end, heuristic=heur, weight="weight")
                 else:
-                    astar_path = [start] + nx.astar_path(Graph, startx, endx, heuristic=euclidean, weight="weight") + [end]
+                    astar_path = [start] + nx.astar_path(Graph, startx, endx, heuristic=heur, weight="weight") + [end]
             elif endx[1] != -1:
-                astar_path = nx.astar_path(Graph, start, endx, heuristic=euclidean, weight="weight") + [end]
+                astar_path = nx.astar_path(Graph, start, endx, heuristic=heur, weight="weight") + [end]
 
     except nx.NetworkXNoPath:
         return None   
