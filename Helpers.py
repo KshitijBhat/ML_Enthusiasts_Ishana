@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from numba import njit
+from sklearn.neighbors import KDTree
 
 import json
 
@@ -233,3 +234,35 @@ def initgraph(grid,draw=False):
         pos = {(x,y):(y,-x) for x,y in G.nodes()}
         nx.draw(G, pos = pos, node_color = 'red', node_size=2)
     return G
+
+def generate_path(Graph,start,end):
+    startx,endx = (-1,-1),(-1,-1)
+    if not Graph.has_node(tuple(start)):
+        node_coords = np.array(nx.nodes(Graph))
+        tree = KDTree(node_coords, metric='minkowski')
+        start_idx = tree.query(np.array(start).reshape(1,-1), k=1, return_distance=False)[0]
+        startx = tuple(node_coords[start_idx][0])
+        print(startx)
+    if not Graph.has_node(tuple(end)):
+        node_coords = np.array(nx.nodes(Graph))
+        tree = KDTree(node_coords, metric='minkowski')
+        end_idx = tree.query(np.array(end).reshape(1,-1), k=1, return_distance=False)[0]
+        endx = tuple(node_coords[end_idx][0] )
+        print(endx)
+    try:
+        if startx[1] == -1 and endx[1] == -1:
+            astar_path = nx.astar_path(Graph, start, end, heuristic=euclidean, weight="weight") 
+        else:
+            if startx[1] != -1:
+                if endx[1] == -1:
+                    astar_path = [start] + nx.astar_path(Graph, startx, end, heuristic=euclidean, weight="weight")
+                else:
+                    astar_path = [start] + nx.astar_path(Graph, startx, endx, heuristic=euclidean, weight="weight") + [end]
+            elif endx[1] != -1:
+                astar_path = nx.astar_path(Graph, start, endx, heuristic=euclidean, weight="weight") + [end]
+
+    except nx.NetworkXNoPath:
+        return None   
+
+    
+    return astar_path    
