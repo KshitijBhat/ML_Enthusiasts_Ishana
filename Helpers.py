@@ -1,8 +1,3 @@
-import torch
-import torch.nn as nn
-import torch.utils.data as data
-from torch.autograd import Variable as V
-
 import cv2
 import os
 import numpy as np
@@ -13,9 +8,20 @@ from sklearn.neighbors import KDTree
 
 import json
 
+
+######################################################################################################
+# Referred from https://github.com/zlckanata/DeepGlobe-Road-Extraction-Challenge/blob/master/test.py
+# Authors: Lichen Zhou, Chuang Zhang, Ming Wu, Beijing University of Posts and Telecommunications
+
+import torch
+import torch.nn as nn
+import torch.utils.data as data
+from torch.autograd import Variable as V
+
 from DeepGlobe.networks.unet import Unet
 from DeepGlobe.networks.dunet import Dunet
 from DeepGlobe.networks.dinknet import LinkNet34, DinkNet34, DinkNet50, DinkNet101, DinkNet34_less_pool
+
 
 BATCHSIZE_PER_CARD = 4
 
@@ -136,6 +142,8 @@ class TTAFrame():
     def load(self, path):
         self.net.load_state_dict(torch.load(path))
 
+######################################################################################################
+
 @njit        
 def narrowize(grid,bound,thickness):
     """
@@ -236,6 +244,10 @@ def initgraph(grid,draw=False):
     return G
 
 def generate_path(Graph,start,end,heur = euclidean):
+    '''
+    Generates the A* path using the given start and end nodes with the given heuristic.
+    If node not found, finds the nearest (euclidean) node on the graph.
+    '''
     startx,endx = (-1,-1),(-1,-1)
     if not Graph.has_node(tuple(start)):
         node_coords = np.array(nx.nodes(Graph))
