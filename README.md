@@ -4,6 +4,8 @@
 
 Team members : [Bhavya Dalal](https://github.com/dalalbhavya), [Tanishq Selot](https://github.com/tanishq150802), [Kshitij M Bhat](https://github.com/KshitijBhat)
 
+Link to Presentation : [Presentation.pdf](https://github.com/KshitijBhat/ML_Enthusiasts_Ishana/blob/main/Presentation.pdf) 
+
 ## Requirements
 * Python 3.7.12
 * Numpy
